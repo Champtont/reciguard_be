@@ -6,7 +6,7 @@ const googleStrategy = new GoogleStrategy(
   {
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_SECRET,
-    callbackURL: `${process.env.BE_URL}/authors/googleRedirect`, // this needs to match EXACTLY with the redirect URL you have configured on Google
+    callbackURL: `${process.env.BE_URL}/users/googleRedirect`, // this needs to match EXACTLY with the redirect URL you have configured on Google
   },
   async (_, __, profile, passportNext) => {
     try {
@@ -20,9 +20,8 @@ const googleStrategy = new GoogleStrategy(
         });
         passportNext(null, { accessToken });
       } else {
-        const newUser = new AuthorModel({
+        const newUser = new UserModel({
           firstName: given_name,
-          lastName: family_name,
           email,
           googleId: profile.id,
         });

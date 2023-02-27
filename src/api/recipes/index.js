@@ -5,6 +5,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWTAuthMiddleware } from "../../lib/auth/jwtAuth.js";
 import RecipesModel from "./model.js";
+import UsersModel from "../users/model.js";
 
 const recipesRouter = express.Router();
 
@@ -18,6 +19,17 @@ recipesRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
       author: req.user._id,
     });
     const { _id } = await newRecipe.save();
+    if (newRecipe) {
+      const recipeToInsert = newRecipe;
+      const updatedUser = await UsersModel.findOneAndUpdate(
+        req.user._id,
+        { $push: { recipeBook: recipeToInsert } },
+        { new: true, runValidators: true }
+      );
+      if (updatedUser) {
+        res.send(updatedUser);
+      }
+    }
     res.status(201).send({ _id });
   } catch (error) {
     next(error);

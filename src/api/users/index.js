@@ -59,10 +59,12 @@ usersRouter.post("/login", async (req, res, next) => {
   }
 });
 //logOut
-usersRouter.delete("/session", JWTAuthMiddleware, async (req, res, next) => {
+usersRouter.get("/logout", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    await UsersModel.findByIdAndUpdate(req.user._id);
-    res.status(204).send();
+    const user = await UsersModel.findById(req.user._id);
+    res.clearCookie("jwt");
+    await user.save();
+    res.status(200).send({ message: "You're logged out" });
   } catch (error) {
     next(error);
   }
