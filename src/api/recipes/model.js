@@ -13,7 +13,7 @@ const recipeSchema = new Schema({
   description: { type: String, required: false },
   ingredients: [{ type: String, required: false }],
   instructions: [{ type: String, required: false }],
-  author: { type: Types.ObjectId, ref: "User", required: true },
+  author: { type: Schema.Types.ObjectId, ref: "User", required: true },
 });
 
 export default model("Recipe", recipeSchema);

@@ -1,10 +1,14 @@
 import express from "express";
 import createHttpError from "http-errors";
 import passport from "passport";
-import { adminOnlyMiddleware } from "../../lib/auth/adminOnly.js";
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { adminOnlyMiddleware } from "../../lib/auth/adminAuth.js";
 import { JWTAuthMiddleware } from "../../lib/auth/jwtAuth.js";
 import { createAccessToken } from "../../lib/auth/tools.js";
 import UsersModel from "./model.js";
+import RecipesModel from "../recipes/model.js";
 
 const usersRouter = express.Router();
 //*********User Endpoints******
@@ -23,12 +27,12 @@ usersRouter.post("/register", async (req, res, next) => {
   }
 });
 //googleEnd points
-authorsRouter.get(
+usersRouter.get(
   "/googleLogin",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-authorsRouter.get(
+usersRouter.get(
   "/googleRedirect",
   passport.authenticate("google", { session: false }),
   async (req, res, next) => {
@@ -125,7 +129,7 @@ usersRouter.get("/me/recipes", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const recipes = await recipesModel
       .find({
-        host: req.user._id,
+        author: req.user._id,
       })
       .populate({ path: "author", select: "firstName avatar" });
 
@@ -144,5 +148,23 @@ usersRouter.get("/me/recipes", JWTAuthMiddleware, async (req, res, next) => {
   }
 });
 //Edit My recipes
+usersRouter.put("/me/:recipeId", JWTAuthMiddleware, async (req, res, next) => {
+  try {
+    const updatedRecipe = await RecipesModel.findByIdAndUpdate(
+      req.params.recipeId,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (updatedRecipe) {
+      res.send(updatedRecipe);
+    } else {
+      next(
+        createError(404, `Recipe with id ${req.params.recipeId} not found!`)
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+});
 //Delete one of my recipies
 export default usersRouter;

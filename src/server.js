@@ -20,8 +20,8 @@ server.use(express.json());
 server.use(passport.initialize());
 
 // **** ENDPOINTS ****
-server.use("users", usersRouter);
-server.use("recipes", recipesRouter);
+server.use("/users", usersRouter);
+server.use("/recipes", recipesRouter);
 
 // ** ERROR HANDLERS **
 server.use(badRequestHandler);
