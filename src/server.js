@@ -7,6 +7,8 @@ import {
   genericErrorHandler,
   notFoundHandler,
 } from "./errorHandlers.js";
+import usersRouter from "./api/users/index.js";
+import recipesRouter from "./api/recipes/index.js";
 
 const server = express();
 
@@ -18,6 +20,8 @@ server.use(express.json());
 server.use(passport.initialize());
 
 // **** ENDPOINTS ****
+server.use("users", usersRouter);
+server.use("recipes", recipesRouter);
 
 // ** ERROR HANDLERS **
 server.use(badRequestHandler);

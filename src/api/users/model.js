@@ -6,10 +6,13 @@ const { Schema, model } = mongoose;
 const usersSchema = new Schema(
   {
     firstName: { type: String, required: true },
-    LastName: { type: String, required: true },
-    password: { type: String, required: true },
+    password: { type: String, required: false },
     email: { type: String, required: false },
+    avatar: { type: String, required: false },
     role: { type: String, enum: ["User", "Admin"], default: "Guest" },
+    recipeBook: [
+      { type: Schema.Types.ObjectId, ref: "Recipe", required: false },
+    ],
   },
   {
     timestamps: true,
