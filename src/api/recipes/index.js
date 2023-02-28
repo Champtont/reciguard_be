@@ -1,9 +1,11 @@
 import express from "express";
 import createHttpError from "http-errors";
+import q2m from "query-to-mongo";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWTAuthMiddleware } from "../../lib/auth/jwtAuth.js";
+import { adminOnlyMiddleware } from "../../lib/auth/adminAuth.js";
 import RecipesModel from "./model.js";
 import UsersModel from "../users/model.js";
 
@@ -18,19 +20,18 @@ recipesRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
       ...req.body,
       author: req.user._id,
     });
-    const { _id } = await newRecipe.save();
-    if (newRecipe) {
-      const recipeToInsert = newRecipe;
-      const updatedUser = await UsersModel.findOneAndUpdate(
-        req.user._id,
-        { $push: { recipeBook: recipeToInsert } },
-        { new: true, runValidators: true }
-      );
-      if (updatedUser) {
-        res.send(updatedUser);
-      }
+
+    const recipeToInsert = newRecipe;
+    const updatedUser = await UsersModel.findByIdAndUpdate(
+      req.user._id,
+      { $push: { recipeBook: recipeToInsert } },
+      { new: true, runValidators: true }
+    );
+    if (newRecipe && updatedUser) {
+      console.log(req.user._id);
+      const { _id } = await newRecipe.save();
+      res.send(updatedUser);
     }
-    res.status(201).send({ _id });
   } catch (error) {
     next(error);
   }
@@ -39,11 +40,12 @@ recipesRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
 //Get All recipes
 recipesRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const recipes = await RecipesModel.find().populate({
+    const mongoQuery = q2m(req.query);
+    const recipes = await RecipesModel.find(mongoQuery.criteria).populate({
       path: "author",
       select: ["firstName", "avatar"],
     });
-    res.status(200).send(accommodations);
+    res.status(200).send(recipes);
   } catch (error) {
     next(error);
   }
@@ -71,6 +73,35 @@ recipesRouter.get("/:recipeId", JWTAuthMiddleware, async (req, res, next) => {
     next(error);
   }
 });
+
+//Delete a single recipe... ADMIN Only
+recipesRouter.delete(
+  "/:recipeId",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const updatedUser = await UsersModel.findByIdAndUpdate(
+        req.user._id,
+        { $pull: { recipeBook: req.params.recipeId } },
+        { new: true, runValidators: true }
+      );
+      const recipeToDelete = await RecipesModel.findByIdAndDelete(
+        req.params.recipeId
+      );
+      if (updatedUser && recipeToDelete) {
+        res.send(updatedUser);
+      } else {
+        next(
+          createHttpError(404, `User with id ${req.user._id} was not found`)
+        );
+      }
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+);
 
 //Change Recipe Photo
 const cloudinaryUploader = multer({

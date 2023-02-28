@@ -1,6 +1,7 @@
 import express from "express";
 import createHttpError from "http-errors";
 import passport from "passport";
+import q2m from "query-to-mongo";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
@@ -129,11 +130,10 @@ usersRouter.post(
 //Get All My recipes
 usersRouter.get("/me/recipes", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const recipes = await recipesModel
-      .find({
-        author: req.user._id,
-      })
-      .populate({ path: "author", select: "firstName avatar" });
+    const mongoQuery = q2m(req.query);
+    const recipes = await RecipesModel.find({
+      author: req.user._id,
+    }).populate({ path: "author", select: "firstName avatar" });
 
     if (recipes) {
       res.send(recipes);
@@ -169,4 +169,34 @@ usersRouter.put("/me/:recipeId", JWTAuthMiddleware, async (req, res, next) => {
   }
 });
 //Delete one of my recipies
+usersRouter.delete(
+  "/me/:recipeId",
+  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const updatedUser = await UsersModel.findByIdAndUpdate(
+        req.user._id,
+        { $pull: { recipeBook: req.params.recipeId } },
+        { new: true, runValidators: true }
+      );
+      const recipeToDelete = await RecipesModel.findByIdAndDelete(
+        req.params.recipeId
+      );
+      if (updatedUser && recipeToDelete) {
+        res.send(updatedUser);
+      } else {
+        next(
+          createHttpError(
+            404,
+            `Recipe with id ${req.params.recipeId} was not found`
+          )
+        );
+      }
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+);
+
 export default usersRouter;
