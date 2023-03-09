@@ -10,6 +10,7 @@ import { JWTAuthMiddleware } from "../../lib/auth/jwtAuth.js";
 import { createAccessToken } from "../../lib/auth/tools.js";
 import UsersModel from "./model.js";
 import RecipesModel from "../recipes/model.js";
+import MenusModel from "../Menu/model.js";
 
 const usersRouter = express.Router();
 //*********User Endpoints******
@@ -73,7 +74,9 @@ usersRouter.get("/logout", JWTAuthMiddleware, async (req, res, next) => {
 //Get My Info
 usersRouter.get("/me", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const user = await UsersModel.findById(req.user._id);
+    const user = await UsersModel.findById(req.user._id).populate({
+      path: "calendar recipeBook",
+    });
     res.send(user);
   } catch (error) {
     next(error);
@@ -200,3 +203,81 @@ usersRouter.delete(
 );
 
 export default usersRouter;
+
+/*** NEW FEATURES****/
+//Post A Menu - this creates a "menu event that should be pushed into the user calendar.menus"
+usersRouter.post(
+  "/calendar/:date",
+  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const newDailyMenu = new MenusModel({
+        ...req.body,
+        planDate: new Date(`${req.params.date}`), //don't forget to check this out
+        author: req.user._id,
+      });
+
+      const menuToInsert = newDailyMenu;
+      const updatedUser = await UsersModel.findByIdAndUpdate(
+        req.user._id,
+        { $push: { calendar: menuToInsert } },
+        { new: true, runValidators: true }
+      );
+      if (newDailyMenu && updatedUser) {
+        console.log(req.user._id);
+        const { _id } = await newDailyMenu.save();
+        res.send(updatedUser);
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+//get all of My menus
+usersRouter.get("/calendar", JWTAuthMiddleware, async (req, res, next) => {
+  const mongoQuery = q2m(req.query);
+  try {
+    const menus = await MenusModel.find(
+      { author: req.user._id },
+      mongoQuery.criteria
+    ).populate({
+      path: "recipes",
+    });
+    res.status(200).send(menus);
+  } catch (error) {
+    next(error);
+  }
+});
+//get Menus within a date range
+usersRouter.get(
+  "/calendar/:start/:end",
+  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const menus = await MenusModel.find({
+        author: req.user._id,
+        planDate: { $gte: req.params.start, $lte: req.params.end },
+      }).populate({
+        path: "recipes",
+      });
+      res.status(200).send(menus);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+//get specific menu
+usersRouter.get(
+  "/calendar/:menuId",
+  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const menu = await MenusModel.findById(req.params.menuId).populate({
+        path: "recipes",
+      });
+      res.status(200).send(menu);
+    } catch (error) {
+      next(error);
+    }
+  }
+);

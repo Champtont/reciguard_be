@@ -19,6 +19,10 @@ const usersSchema = new Schema(
     recipeBook: [
       { type: Schema.Types.ObjectId, ref: "Recipe", required: false },
     ],
+    calendar: [{ type: Schema.Types.ObjectId, ref: "Menu", required: false }],
+    favorites: [
+      { type: Schema.Types.ObjectId, ref: "Recipe", required: false },
+    ],
   },
   {
     timestamps: true,
