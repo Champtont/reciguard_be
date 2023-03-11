@@ -11,6 +11,8 @@ import { createAccessToken } from "../../lib/auth/tools.js";
 import UsersModel from "./model.js";
 import RecipesModel from "../recipes/model.js";
 import MenusModel from "../Menu/model.js";
+import { model } from "mongoose";
+import mongooseDeepPopulate from "mongoose-deep-populate";
 
 const usersRouter = express.Router();
 //*********User Endpoints******
@@ -74,9 +76,15 @@ usersRouter.get("/logout", JWTAuthMiddleware, async (req, res, next) => {
 //Get My Info
 usersRouter.get("/me", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const user = await UsersModel.findById(req.user._id).populate({
-      path: "calendar recipeBook",
-    });
+    const user = await UsersModel.findById(req.user._id)
+      .populate([
+        {
+          path: "calendar",
+          model: "Menu",
+          populate: { path: "recipes", model: "Recipe" },
+        },
+      ])
+      .populate("recipeBook");
     res.send(user);
   } catch (error) {
     next(error);
@@ -240,9 +248,7 @@ usersRouter.get("/calendar", JWTAuthMiddleware, async (req, res, next) => {
     const menus = await MenusModel.find(
       { author: req.user._id },
       mongoQuery.criteria
-    ).populate({
-      path: "recipes",
-    });
+    ).populate();
     res.status(200).send(menus);
   } catch (error) {
     next(error);
@@ -277,6 +283,36 @@ usersRouter.get(
       });
       res.status(200).send(menu);
     } catch (error) {
+      next(error);
+    }
+  }
+);
+//delete a menu
+usersRouter.delete(
+  "/calendar/:menuId",
+  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const updatedUser = await UsersModel.findByIdAndUpdate(
+        req.user._id,
+        { $pull: { calendar: req.params.menuId } },
+        { new: true, runValidators: true }
+      );
+      const menuToDelete = await MenusModel.findByIdAndDelete(
+        req.params.menuId
+      );
+      if (updatedUser && menuToDelete) {
+        res.send(updatedUser);
+      } else {
+        next(
+          createHttpError(
+            404,
+            `Menu with id ${req.params.menuId} was not found`
+          )
+        );
+      }
+    } catch (error) {
+      console.log(error);
       next(error);
     }
   }
