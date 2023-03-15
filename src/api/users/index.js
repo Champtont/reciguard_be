@@ -287,6 +287,27 @@ usersRouter.get(
     }
   }
 );
+//edit menu
+usersRouter.put(
+  "/calendar/:menuId",
+  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const updatedMenu = await MenusModel.findByIdAndUpdate(
+        req.params.menuId,
+        req.body,
+        { new: true, runValidators: true }
+      );
+      if (updatedMenu) {
+        res.send(updatedMenu);
+      } else {
+        next(createError(404, `Menu with id ${req.params.menuId} not found!`));
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 //delete a menu
 usersRouter.delete(
   "/calendar/:menuId",
