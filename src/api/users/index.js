@@ -266,7 +266,14 @@ usersRouter.get(
       }).populate({
         path: "recipes",
       });
-      res.status(200).send(menus);
+      const updateUser = await UsersModel.findByIdAndUpdate(
+        req.user._id,
+        { shoppingMenus: menus },
+        { new: true, runValidators: true }
+      );
+      if (menus && updateUser) {
+        res.status(200).send(menus);
+      }
     } catch (error) {
       next(error);
     }
