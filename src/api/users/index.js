@@ -84,7 +84,13 @@ usersRouter.get("/me", JWTAuthMiddleware, async (req, res, next) => {
           populate: { path: "recipes", model: "Recipe" },
         },
       ])
-      .populate("recipeBook");
+      .populate("recipeBook")
+      .populate([
+        {
+          path: "shoppingMenus",
+          populate: { path: "recipes", model: "Recipe" },
+        },
+      ]);
     res.send(user);
   } catch (error) {
     next(error);
