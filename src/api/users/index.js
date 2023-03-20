@@ -90,6 +90,12 @@ usersRouter.get("/me", JWTAuthMiddleware, async (req, res, next) => {
           path: "shoppingMenus",
           populate: { path: "recipes", model: "Recipe" },
         },
+      ])
+      .populate([
+        {
+          path: "favorites",
+          model: "Recipe",
+        },
       ]);
     res.send(user);
   } catch (error) {
@@ -368,3 +374,47 @@ usersRouter.post("/list", JWTAuthMiddleware, async (req, res, next) => {
     next(error);
   }
 });
+// post a favorite
+usersRouter.post("/favorites", JWTAuthMiddleware, async (req, res, next) => {
+  try {
+    const favoriteToInsert = req.body;
+    const updatedUser = await UsersModel.findByIdAndUpdate(
+      req.user._id,
+      { $push: { favorites: favoriteToInsert } },
+      { new: true, runValidators: true }
+    );
+    if (favoriteToInsert && updatedUser) {
+      res.send(updatedUser);
+    }
+  } catch (error) {
+    res.send(error);
+    next(error);
+  }
+});
+//remove a favorite
+usersRouter.delete(
+  "/favorite/:recipeId",
+  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const updatedUser = await UsersModel.findByIdAndUpdate(
+        req.user._id,
+        { $pull: { favorites: req.params.recipeId } },
+        { new: true, runValidators: true }
+      );
+      if (updatedUser) {
+        res.send(updatedUser);
+      } else {
+        next(
+          createHttpError(
+            404,
+            `Recipe with id ${req.params.recipeId} was not found`
+          )
+        );
+      }
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+);
