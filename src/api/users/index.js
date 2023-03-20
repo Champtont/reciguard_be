@@ -351,3 +351,20 @@ usersRouter.delete(
     }
   }
 );
+//shopping list stuff
+//post a list
+usersRouter.post("/list", JWTAuthMiddleware, async (req, res, next) => {
+  try {
+    const listToInsert = req.body;
+    const updatedUser = await UsersModel.findByIdAndUpdate(
+      req.user._id,
+      { list: listToInsert },
+      { new: true, runValidators: true }
+    );
+    if (listToInsert && updatedUser) {
+      res.send(updatedUser);
+    }
+  } catch (error) {
+    next(error);
+  }
+});
