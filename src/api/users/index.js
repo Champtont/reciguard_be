@@ -156,6 +156,7 @@ usersRouter.get("/me/recipes", JWTAuthMiddleware, async (req, res, next) => {
     const mongoQuery = q2m(req.query);
     const recipes = await RecipesModel.find({
       author: req.user._id,
+      criteria: { categoryTags: req.query },
     }).populate({ path: "author", select: "firstName avatar" });
 
     if (recipes) {
