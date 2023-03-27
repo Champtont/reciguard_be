@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watchAll",
-    "dev": "nodemon -r dotenv/config ./src/index.js"
+    "dev": "nodemon -r dotenv/config ./src/index.js",
+    "start": "node ./src/index.js"
   },
   "repository": {
     "type": "git",
@@ -29,6 +30,7 @@
     "http-errors": "^2.0.0",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^6.9.1",
+    "mongoose-deep-populate": "^3.2.0",
     "multer": "^1.4.5-lts.1",
     "multer-storage-cloudinary": "^4.0.0",
     "passport": "^0.6.0",
