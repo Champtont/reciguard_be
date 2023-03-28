@@ -1,4 +1,4 @@
-# recigaurd_be
+# reciguard_be
 
 Writing a Backend for my recipe app
 
