@@ -20,6 +20,8 @@ const corsOptions = {
 
 const server = express();
 
+server.set("trust proxy",1);
+
 passport.use("google", googleStrategy);
 
 // * MIDDLEWARES *
