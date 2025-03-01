@@ -30,8 +30,8 @@ server.use(cors({
     methods: "GET,POST,PUT,DELETE,OPTIONS", // Allowed methods
     allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
     credentials: true,
+    options: "*"
 }));
-server.options("*", cors())
 server.use(express.json());
 server.use(passport.initialize());
 
