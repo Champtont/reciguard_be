@@ -25,11 +25,11 @@ server.set("trust proxy",1);
 passport.use("google", googleStrategy);
 
 // * MIDDLEWARES *
-server.use(cors(
+server.use(cors({
   origin: "https://reciguard.vercel.app",
   headers: ["Content-Type"],
   credentials: true,
-));
+}));
 server.use(express.json());
 server.use(passport.initialize());
 
