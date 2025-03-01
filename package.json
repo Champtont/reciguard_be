@@ -7,7 +7,7 @@
   "scripts": {
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watchAll",
     "dev": "nodemon -r dotenv/config ./src/index.js",
-    "start": "node src/index.js"
+    "start": "npm i node src/index.js"
   },
   "repository": {
     "type": "git",
