@@ -26,10 +26,9 @@ passport.use("google", googleStrategy);
 
 // * MIDDLEWARES *
 server.use(cors({
-  origin: "https://reciguard.vercel.app",
-  headers: ["Content-Type"],
-  credentials: true,
+  origin: "https://reciguard.vercel.app"
 }));
+server.options('*', cors())
 server.use(express.json());
 server.use(passport.initialize());
 
