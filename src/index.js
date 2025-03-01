@@ -8,7 +8,7 @@ mongoose.connect(process.env.MONGO_URL);
 
 mongoose.connection.on("connected", () => {
   server.listen(port, () => {
-    console.log("Server is running on port:", port);
+    console.log(`This server is running on port:${port}`);
     console.table(listEndpoints(server));
   });
 });
