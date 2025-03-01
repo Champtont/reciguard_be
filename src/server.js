@@ -16,22 +16,24 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
 };
-*/
-
-const server = express();
 
 server.set("trust proxy",1);
 
-passport.use("google", googleStrategy);
-
-// * MIDDLEWARES *
-server.use(cors({
+{
     origin: ["https://reciguard.vercel.app"], // Allow frontend origins
     methods: "GET,POST,PUT,DELETE,OPTIONS", // Allowed methods
     allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
     credentials: true,
     options: "*"
-}));
+}
+*/
+
+const server = express();
+
+passport.use("google", googleStrategy);
+
+// * MIDDLEWARES *
+server.use(cors());
 server.use(express.json());
 server.use(passport.initialize());
 
