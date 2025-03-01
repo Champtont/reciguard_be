@@ -10,12 +10,18 @@ import {
 import usersRouter from "./api/users/index.js";
 import recipesRouter from "./api/recipes/index.js";
 
+const corsOptions = {
+  origin: 'https://reciguard.vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+};
+
 const server = express();
 
 passport.use("google", googleStrategy);
 
 // * MIDDLEWARES *
-server.use(cors());
+server.use(cors(corsOptions));
 server.use(express.json());
 server.use(passport.initialize());
 
