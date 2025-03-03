@@ -33,7 +33,13 @@ const server = express();
 passport.use("google", googleStrategy);
 
 // * MIDDLEWARES *
-server.use(cors());
+server.use(cors({
+    origin: ["https://reciguard.vercel.app"], // Allow frontend origins
+    methods: "GET,POST,PUT,DELETE,OPTIONS", // Allowed methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
+    credentials: true,
+    options: "*"
+}));
 server.use(express.json());
 server.use(passport.initialize());
 
